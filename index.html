@@ -90,18 +90,19 @@
         return;
       }
 
-      // Fully decode the URL (handle any level of encoding)
+      // Decode exactly once (undo our outer encoding only)
+      // Do NOT multi-decode — %20 inside UPI params must stay encoded
       var upiUrl = raw;
       try {
-        var prev = '';
-        var maxIter = 5;
-        while (prev !== upiUrl && maxIter-- > 0) {
-          prev = upiUrl;
-          upiUrl = decodeURIComponent(upiUrl);
-        }
+        upiUrl = decodeURIComponent(upiUrl);
       } catch(e) {}
 
       // Validate it starts with upi://
+      if (upiUrl.indexOf('upi://') !== 0) {
+        // Maybe it needs one more decode
+        try { upiUrl = decodeURIComponent(upiUrl); } catch(e2) {}
+      }
+
       if (upiUrl.indexOf('upi://') !== 0) {
         document.getElementById('spinner').style.display = 'none';
         document.getElementById('icon').style.display = 'block';
