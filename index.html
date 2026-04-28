@@ -41,6 +41,7 @@
     }
     .btn:active { transform: scale(0.97); }
     .fallback { margin-top: 20px; font-size: 12px; opacity: 0.7; }
+    .debug { margin-top: 16px; font-size: 11px; opacity: 0.5; word-break: break-all; text-align: left; }
     .spinner {
       width: 36px; height: 36px;
       border: 3px solid rgba(255,255,255,0.3);
@@ -62,21 +63,26 @@
     <div class="fallback" id="fallback" style="display:none">
       If nothing opens, please open your UPI app manually and scan the QR code from the email.
     </div>
+    <div class="debug" id="debug"></div>
   </div>
   <script>
     (function() {
       // Read the UPI URL from hash fragment (preferred) or query parameter
-      var upiUrl = null;
+      var raw = null;
       if (window.location.hash && window.location.hash.length > 1) {
-        var hashParams = new URLSearchParams(window.location.hash.substring(1));
-        upiUrl = hashParams.get('url');
+        // Extract everything after #url=
+        var h = window.location.hash.substring(1);
+        var idx = h.indexOf('url=');
+        if (idx !== -1) {
+          raw = h.substring(idx + 4);
+        }
       }
-      if (!upiUrl) {
+      if (!raw) {
         var params = new URLSearchParams(window.location.search);
-        upiUrl = params.get('url');
+        raw = params.get('url');
       }
 
-      if (!upiUrl) {
+      if (!raw) {
         document.getElementById('spinner').style.display = 'none';
         document.getElementById('icon').style.display = 'block';
         document.getElementById('title').textContent = 'Invalid Link';
@@ -84,10 +90,31 @@
         return;
       }
 
-      // Decode the URL if it was encoded
-      try { upiUrl = decodeURIComponent(upiUrl); } catch(e) {}
+      // Fully decode the URL (handle any level of encoding)
+      var upiUrl = raw;
+      try {
+        var prev = '';
+        var maxIter = 5;
+        while (prev !== upiUrl && maxIter-- > 0) {
+          prev = upiUrl;
+          upiUrl = decodeURIComponent(upiUrl);
+        }
+      } catch(e) {}
 
-      // Try to auto-redirect
+      // Validate it starts with upi://
+      if (upiUrl.indexOf('upi://') !== 0) {
+        document.getElementById('spinner').style.display = 'none';
+        document.getElementById('icon').style.display = 'block';
+        document.getElementById('title').textContent = 'Invalid Payment Link';
+        document.getElementById('msg').textContent = 'The payment link appears to be invalid.';
+        document.getElementById('debug').textContent = 'Decoded: ' + upiUrl;
+        return;
+      }
+
+      // Show the decoded URL for debugging
+      document.getElementById('debug').textContent = upiUrl;
+
+      // Try to open the UPI app
       window.location.href = upiUrl;
 
       // After a short delay, show the manual button
@@ -101,7 +128,7 @@
         btn.href = upiUrl;
         btn.style.display = 'inline-block';
         document.getElementById('fallback').style.display = 'block';
-      }, 1500);
+      }, 2000);
     })();
   </script>
 </body>
