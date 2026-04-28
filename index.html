@@ -84,14 +84,8 @@
         return;
       }
 
-      // Decode the URL fully (handle double-encoding)
-      try {
-        var prev = '';
-        while (prev !== upiUrl) {
-          prev = upiUrl;
-          upiUrl = decodeURIComponent(upiUrl);
-        }
-      } catch(e) {}
+      // Decode the URL if it was encoded
+      try { upiUrl = decodeURIComponent(upiUrl); } catch(e) {}
 
       // Try to auto-redirect
       window.location.href = upiUrl;
