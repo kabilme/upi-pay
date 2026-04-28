@@ -65,9 +65,16 @@
   </div>
   <script>
     (function() {
-      // Read the UPI URL from query parameter
-      var params = new URLSearchParams(window.location.search);
-      var upiUrl = params.get('url');
+      // Read the UPI URL from hash fragment (preferred) or query parameter
+      var upiUrl = null;
+      if (window.location.hash && window.location.hash.length > 1) {
+        var hashParams = new URLSearchParams(window.location.hash.substring(1));
+        upiUrl = hashParams.get('url');
+      }
+      if (!upiUrl) {
+        var params = new URLSearchParams(window.location.search);
+        upiUrl = params.get('url');
+      }
 
       if (!upiUrl) {
         document.getElementById('spinner').style.display = 'none';
