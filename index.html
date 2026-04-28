@@ -115,8 +115,18 @@
       // Show the decoded URL for debugging
       document.getElementById('debug').textContent = upiUrl;
 
+      // Build Android intent URL for better app handling
+      // This tells Chrome to launch the UPI app via proper Android intent
+      // instead of treating it as a generic URL redirect
+      var intentUrl = upiUrl;
+      var isAndroid = /android/i.test(navigator.userAgent);
+      if (isAndroid && upiUrl.indexOf('upi://') === 0) {
+        var upiPart = upiUrl.substring(6); // remove "upi://"
+        intentUrl = 'intent://' + upiPart + '#Intent;scheme=upi;end';
+      }
+
       // Try to open the UPI app
-      window.location.href = upiUrl;
+      window.location.href = intentUrl;
 
       // After a short delay, show the manual button
       setTimeout(function() {
@@ -126,7 +136,7 @@
         document.getElementById('title').textContent = 'Tap the button below to pay';
         document.getElementById('msg').textContent = 'Your UPI app should open automatically. If it didn\'t, tap the button below.';
         var btn = document.getElementById('payBtn');
-        btn.href = upiUrl;
+        btn.href = intentUrl;
         btn.style.display = 'inline-block';
         document.getElementById('fallback').style.display = 'block';
       }, 2000);
