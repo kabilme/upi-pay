@@ -112,9 +112,6 @@
         return;
       }
 
-      // Show the decoded URL for debugging
-      document.getElementById('debug').textContent = upiUrl;
-
       // Build Android intent URL for better app handling
       // This tells Chrome to launch the UPI app via proper Android intent
       // instead of treating it as a generic URL redirect
@@ -124,6 +121,9 @@
         var upiPart = upiUrl.substring(6); // remove "upi://"
         intentUrl = 'intent://' + upiPart + '#Intent;scheme=upi;end';
       }
+
+      // Show the FINAL URL for debugging (should show intent:// on Android)
+      document.getElementById('debug').textContent = intentUrl;
 
       // Try to open the UPI app
       window.location.href = intentUrl;
