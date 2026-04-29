@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Opening Payment App...</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: -apple-system, system-ui, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -15,62 +21,132 @@
       justify-content: center;
       color: #fff;
     }
+
     .card {
-      background: rgba(255,255,255,0.15);
+      background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(20px);
       border-radius: 20px;
       padding: 40px 32px;
       max-width: 380px;
       text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      width: 90%;
     }
-    .icon { font-size: 48px; margin-bottom: 16px; }
-    h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-    p { font-size: 14px; opacity: 0.85; line-height: 1.6; margin-bottom: 20px; }
+
+    .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 14px;
+      opacity: 0.85;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
     .btn {
-      display: inline-block;
-      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 12px;
       background: #fff;
       color: #764ba2;
       font-weight: 700;
       font-size: 16px;
       text-decoration: none;
       border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       transition: transform 0.2s;
+      gap: 10px;
     }
-    .btn:active { transform: scale(0.97); }
-    .fallback { margin-top: 20px; font-size: 12px; opacity: 0.7; }
-    .debug { margin-top: 16px; font-size: 11px; opacity: 0.5; word-break: break-all; text-align: left; }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-gpay {
+      color: #ea4335;
+    }
+
+    .btn-phonepe {
+      color: #5f259f;
+    }
+
+    .btn-paytm {
+      color: #00b9f1;
+    }
+
+    .fallback {
+      margin-top: 20px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .debug {
+      margin-top: 16px;
+      font-size: 11px;
+      opacity: 0.5;
+      word-break: break-all;
+      text-align: left;
+    }
+
     .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid rgba(255,255,255,0.3);
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
       border-top-color: #fff;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
       margin: 0 auto 16px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .app-buttons {
+      display: none;
+      flex-direction: column;
+      margin-top: 20px;
+    }
   </style>
 </head>
+
 <body>
   <div class="card">
     <div class="spinner" id="spinner"></div>
     <div class="icon" id="icon" style="display:none">💳</div>
     <h2 id="title">Opening UPI App...</h2>
     <p id="msg">Please wait while we redirect you to your payment app.</p>
-    <a id="payBtn" class="btn" style="display:none" href="#">Tap to Pay</a>
+
+    <div class="app-buttons" id="appButtons">
+      <a id="btnGpay" class="btn btn-gpay" href="#">Pay with GPay</a>
+      <a id="btnPhonepe" class="btn btn-phonepe" href="#">Pay with PhonePe</a>
+      <a id="btnPaytm" class="btn btn-paytm" href="#">Pay with Paytm</a>
+      <a id="btnOther" class="btn" href="#">Other UPI Apps</a>
+    </div>
+
     <div class="fallback" id="fallback" style="display:none">
       If nothing opens, please open your UPI app manually and scan the QR code from the email.
     </div>
     <div class="debug" id="debug"></div>
   </div>
   <script>
-    (function() {
+    (function () {
       // Read the UPI URL from hash fragment (preferred) or query parameter
       var raw = null;
       if (window.location.hash && window.location.hash.length > 1) {
-        // Extract everything after #url=
         var h = window.location.hash.substring(1);
         var idx = h.indexOf('url=');
         if (idx !== -1) {
@@ -90,17 +166,15 @@
         return;
       }
 
-      // Decode exactly once (undo our outer encoding only)
-      // Do NOT multi-decode — %20 inside UPI params must stay encoded
+      // Decode exactly once
       var upiUrl = raw;
       try {
         upiUrl = decodeURIComponent(upiUrl);
-      } catch(e) {}
+      } catch (e) { }
 
       // Validate it starts with upi://
       if (upiUrl.indexOf('upi://') !== 0) {
-        // Maybe it needs one more decode
-        try { upiUrl = decodeURIComponent(upiUrl); } catch(e2) {}
+        try { upiUrl = decodeURIComponent(upiUrl); } catch (e2) { }
       }
 
       if (upiUrl.indexOf('upi://') !== 0) {
@@ -112,35 +186,45 @@
         return;
       }
 
-      // Build Android intent URL for better app handling
-      // This tells Chrome to launch the UPI app via proper Android intent
-      // instead of treating it as a generic URL redirect
-      var intentUrl = upiUrl;
+      var upiParams = upiUrl.substring(upiUrl.indexOf('?')); // ?pa=...&pn=...
+
+      // Generic Android Intent
+      var genericIntent = upiUrl;
       var isAndroid = /android/i.test(navigator.userAgent);
-      if (isAndroid && upiUrl.indexOf('upi://') === 0) {
+      if (isAndroid) {
         var upiPart = upiUrl.substring(6); // remove "upi://"
-        intentUrl = 'intent://' + upiPart + '#Intent;scheme=upi;end';
+        genericIntent = 'intent://' + upiPart + '#Intent;scheme=upi;end';
       }
 
-      // Show the FINAL URL for debugging (should show intent:// on Android)
-      document.getElementById('debug').textContent = intentUrl;
+      // App-specific deep links
+      // PhonePe directly avoids the "gallery QR" error by skipping the generic chooser
+      var gpayUrl = 'gpay://upi/pay' + upiParams;
+      var phonepeUrl = 'phonepe://pay' + upiParams;
+      var paytmUrl = 'paytmmp://pay' + upiParams;
 
-      // Try to open the UPI app
-      window.location.href = intentUrl;
+      // Show the parsed generic URL for debugging
+      document.getElementById('debug').textContent = "Link ready: " + genericIntent;
 
-      // After a short delay, show the manual button
-      setTimeout(function() {
+      // Try generic auto-launch
+      window.location.href = genericIntent;
+
+      // Show app-specific buttons after a short delay
+      setTimeout(function () {
         document.getElementById('spinner').style.display = 'none';
         document.getElementById('icon').style.display = 'block';
-        document.getElementById('icon').textContent = '💳';
-        document.getElementById('title').textContent = 'Tap the button below to pay';
-        document.getElementById('msg').textContent = 'Your UPI app should open automatically. If it didn\'t, tap the button below.';
-        var btn = document.getElementById('payBtn');
-        btn.href = intentUrl;
-        btn.style.display = 'inline-block';
+        document.getElementById('title').textContent = 'Select Payment App';
+        document.getElementById('msg').textContent = 'If the app did not open automatically, tap your preferred app below:';
+
+        document.getElementById('btnGpay').href = gpayUrl;
+        document.getElementById('btnPhonepe').href = phonepeUrl;
+        document.getElementById('btnPaytm').href = paytmUrl;
+        document.getElementById('btnOther').href = genericIntent;
+
+        document.getElementById('appButtons').style.display = 'flex';
         document.getElementById('fallback').style.display = 'block';
-      }, 2000);
+      }, 1500);
     })();
   </script>
 </body>
+
 </html>
